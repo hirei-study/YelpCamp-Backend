@@ -6,6 +6,7 @@ const flash = require("connect-flash");
 const passport = require("passport");
 const localStrategy = require("passport-local");
 const cors = require("cors");
+
 require("dotenv").config();
 
 const userRoute = require("./routes/users");
@@ -14,18 +15,31 @@ const postsRoute = require("./routes/posts");
 const campgroundRoute = require("./routes/campground");
 const ExpressError = require("./utils/ExpressError");
 const User = require("./models/User");
-// const catchAsync = require("./utils/catchAsync");
+const { MongoClient } = require("mongodb");
 
 const app = express();
 // データベース接続
 mongoose
-  .connect(process.env.MONGOURL)
+  .connect(process.env.MONGOURL, {})
   .then(() => {
     console.log("DBと接続中...");
   })
   .catch((error) => {
     console.log("error: ", error);
   });
+
+// データベース接続の新しい書き方
+// const uri = process.env.MONGOURL;
+// const client = new MongoClient(uri, {});
+
+// client
+//   .connect()
+//   .then(() => {
+//     console.log("DBと接続中...");
+//   })
+//   .catch((error) => {
+//     console.log("error: ", error);
+//   });
 
 const sessionConfig = {
   secret: "secret",

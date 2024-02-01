@@ -1,3 +1,5 @@
+const { campgroundSchema, reviewSchema } = require("./schemas");
+
 module.exports.isLoggedIn = (req, res, next) => {
   console.log("req.user: ", req.user);
   if (!req.isAuthenticated()) {
