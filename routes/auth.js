@@ -2,6 +2,7 @@ const router = require("express").Router();
 const User = require("../models/User");
 
 const passport = require("passport");
+const jwt = require("jsonwebtoken");
 
 // ユーザー登録
 // router.post("/register", async (req, res) => {
@@ -27,6 +28,10 @@ router.post("/register", async (req, res, next) => {
   try {
     const user = new User({ email: email, username: username });
     const newUser = await User.register(user, password);
+
+    const token = jwt.sign({ userId: newUser._id }, "token", {
+      expiresIn: "24h",
+    });
     req.login(newUser, (error) => {
       if (error) {
         return next(error);
@@ -36,12 +41,15 @@ router.post("/register", async (req, res, next) => {
       return res.status(200).json({
         user: newUser,
         message: "ユーザーを作成しました",
+        flash: req.flash("success"),
+        token: token,
+        // session: req.login(newUser),
       });
     });
   } catch (error) {
     req.flash("error", error.message);
     console.log("error: ", error);
-    return res.status(500).json({ error: error });
+    return res.status(500).json({ error: error, flash: req.flash("error") });
   }
 });
 
@@ -76,6 +84,10 @@ router.post(
     failureRedirect: "login",
   }),
   async (req, res) => {
+    const user = req.user;
+    console.log(user);
+    const token = jwt.sign({ userId: user._id }, "token", { expiresIn: "24h" });
+
     req.flash("success", "おかえりなさい");
     const redirectUrl = (await req.session.returnTo) || "/api/campground";
     delete req.session.returnTo;
@@ -83,6 +95,12 @@ router.post(
     return res.status(200).json({
       url: redirectUrl,
       message: "ログインしました",
+      flash: req.flash("success"),
+      token: token,
+      // session: passport.authenticate("local", {
+      //   failureFlash: true,
+      //   failureRedirect: "login",
+      // }),
     });
   }
 );
@@ -94,6 +112,7 @@ router.get("/logout", (req, res) => {
   return res.status(200).json({
     url: "/api/campground",
     message: "ログアウトしました",
+    flash: req.flash("success"),
   });
 });
 

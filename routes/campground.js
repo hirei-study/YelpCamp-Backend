@@ -24,22 +24,16 @@ router.get("/:id/detail", async (req, res) => {
 });
 
 // isLoggedIn, validateCampground,
-router.post("/new", validateCampground, async (req, res, next) => {
+router.post("/new", isLoggedIn, validateCampground, async (req, res, next) => {
   try {
     console.log(req.body);
-
-    // if (!req.body || Object.keys(req.body).length === 0) {
-    //   return next(
-    //     new ExpressError("不正なキャンプ場のデータまたは空です", 400)
-    //   );
-    // }
 
     const campground = new Campground(req.body);
     await campground.save();
     req.flash("success", "新しいキャンプ場を作成しました");
     return res
       .status(200)
-      .json({ campground: campground, massage: req.flash("success") });
+      .json({ campground: campground, message: req.flash("success") });
   } catch (error) {
     console.log("error: ", error);
     next(error);
