@@ -1,26 +1,45 @@
 const jwt = require("jsonwebtoken");
 const { campgroundSchema, reviewSchema } = require("./schemas");
 
+module.exports.verifyToken = (req, res, next) => {
+  const token =
+    req.headers.authorization && req.headers.authorization.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({ message: "トークンが提供されていません" });
+  }
+
+  jwt.sign(token, "secret", (error, decoded) => {
+    if (error) {
+      return res.status(403).json({ message: "トークンが無効です" });
+    }
+
+    req.userId = decoded.userId;
+    return next();
+  });
+};
+
 module.exports.isLoggedIn = (req, res, next) => {
-  console.log("req.user: ", req.user);
   // フロントから送られてくるトークン
   const token =
     req.headers.authorization && req.headers.authorization.split(" ")[1];
+
+  console.log(token);
 
   if (token) {
     // トークンがある場合、検証してユーザーを取得
     jwt.verify(token, "token", (error, decoded) => {
       if (error) {
-        req.flash("error", "トークンが無効です");
+        req.flash("error", "ログインしてください");
         console.log(req.path, req.originalUrl);
         req.session.returnTo = req.originalUrl;
         return res
           .status(403)
-          .json({ message: "トークンが無効です", flash: req.flash("error") });
+          .json({ message: "ログインしてください", flash: req.flash("error") });
       }
 
       // トークンが有効な場合、ユーザーをreq.userにセット
       req.user = { _id: decoded.userId };
+      console.log(req.user);
       return next();
     });
   } else {

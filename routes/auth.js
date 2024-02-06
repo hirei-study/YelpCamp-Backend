@@ -85,12 +85,14 @@ router.post(
   }),
   async (req, res) => {
     const user = req.user;
-    console.log(user);
+
     const token = jwt.sign({ userId: user._id }, "token", { expiresIn: "24h" });
 
     req.flash("success", "おかえりなさい");
     const redirectUrl = (await req.session.returnTo) || "/api/campground";
     delete req.session.returnTo;
+    console.log(user);
+    console.log(token);
     console.log("ログインしました");
     return res.status(200).json({
       url: redirectUrl,
@@ -106,14 +108,21 @@ router.post(
 );
 
 // passportの機能を使ったログアウト機能
-router.get("/logout", (req, res) => {
-  req.logout();
+// router.get("/logout", (req, res) => {
+//   req.logout();
+//   req.flash("success", "ログアウトしました");
+//   return res.status(200).json({
+//     url: "/api/campground",
+//     message: "ログアウトしました",
+//     flash: req.flash("success"),
+//   });
+// });
+
+router.post("/logout", (req, res) => {
   req.flash("success", "ログアウトしました");
-  return res.status(200).json({
-    url: "/api/campground",
-    message: "ログアウトしました",
-    flash: req.flash("success"),
-  });
+  return res
+    .status(200)
+    .json({ message: "ログアウトしました", flash: req.flash("success") });
 });
 
 // router.get("/", (req, res) => {
